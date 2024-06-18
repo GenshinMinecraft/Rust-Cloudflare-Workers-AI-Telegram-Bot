@@ -6,6 +6,7 @@ version = 3
 name = "RUST"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
  "log",
  "reqwest 0.12.4",
  "serde_json",
