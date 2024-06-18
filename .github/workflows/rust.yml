@@ -1,29 +1,36 @@
 name: build
 on:
-  workflow_dispatch: {}
+  push:
+    tags:
+      - '*'
 jobs:
   build:
     name: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [linux, macos, windows]
+        build: [linux-amd64, macos-amd64, windows-amd64, linux-aarch64]
         include:
-          - build: linux
-            os: ubuntu-18.04
+          - build: linux-amd64
+            os: ubuntu-latest
             rust: nightly
             target: x86_64-unknown-linux-musl
-            archive-name: sgf-render-linux.tar.gz
-          - build: macos
+            archive-name: \[amd64\]Rust-Cloudflare-Workers-AI-Telegram-Bot-linux.tar.gz
+          - build: macos-amd64
             os: macos-latest
             rust: nightly
             target: x86_64-apple-darwin
-            archive-name: sgf-render-macos.tar.gz
-          - build: windows
-            os: windows-2019
+            archive-name: \[amd64\]Rust-Cloudflare-Workers-AI-Telegram-Bot-macos.tar.gz
+          - build: windows-amd64
+            os: windows-latest
             rust: nightly-x86_64-msvc
             target: x86_64-pc-windows-msvc
-            archive-name: sgf-render-windows.7z
+            archive-name: \[amd64\]Rust-Cloudflare-Workers-AI-Telegram-Bot-windows.7z
+          - build: linux-aarch64
+            os: ubuntu-latest
+            rust: nightly
+            target: aarch64-unknown-linux-gnu
+            archive-name: \[aarch64\]Rust-Cloudflare-Workers-AI-Telegram-Bot-linux.tar.gz
       fail-fast: false
 
     steps:
@@ -45,7 +52,7 @@ jobs:
 
       - name: Strip binary (linux and macos)
         if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: strip "target/${{ matrix.target }}/release/sgf-render"
+        run: strip "target/${{ matrix.target }}/release/Rust-Cloudflare-Workers-AI-Telegram-Bot"
 
       - name: Build archive
         shell: bash
@@ -54,11 +61,11 @@ jobs:
           cp LICENSE README.md archive/
           cd archive
           if [ "${{ matrix.build }}" = "windows" ]; then
-            cp "../target/${{ matrix.target }}/release/sgf-render.exe" ./
-            7z a "${{ matrix.archive-name }}" LICENSE README.md sgf-render.exe
+            cp "../target/${{ matrix.target }}/release/Rust-Cloudflare-Workers-AI-Telegram-Bot.exe" ./
+            7z a "${{ matrix.archive-name }}" LICENSE README.md Rust-Cloudflare-Workers-AI-Telegram-Bot.exe
           else
-            cp "../target/${{ matrix.target }}/release/sgf-render" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md sgf-render
+            cp "../target/${{ matrix.target }}/release/Rust-Cloudflare-Workers-AI-Telegram-Bot" ./
+            tar -czf "${{ matrix.archive-name }}" LICENSE README.md Rust-Cloudflare-Workers-AI-Telegram-Bot
           fi
       - name: Upload archive
         uses: actions/upload-artifact@v1
