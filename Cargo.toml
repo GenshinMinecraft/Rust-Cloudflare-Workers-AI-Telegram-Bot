@@ -1,7 +1,7 @@
 [package]
-name = "RUST"
-version = "0.1.0"
-edition = "2021"
+name = "Rust-Cloudflare-Workers-AI-Telegram-Bot"
+version = "0.9"
+edition = "2024"
 
 [dependencies]
 

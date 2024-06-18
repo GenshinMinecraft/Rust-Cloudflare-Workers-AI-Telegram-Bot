@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "RUST"
+name = "Rust-Cloudflare-Workers-AI-Telegram-Bot"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
