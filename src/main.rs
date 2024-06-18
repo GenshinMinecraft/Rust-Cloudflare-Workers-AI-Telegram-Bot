@@ -1,21 +1,20 @@
 // 导入
 mod gpt;
 mod kv;
+mod config;
 
+use config::{setup_config, Config};
 use serde_json::{json, Value};
 use log::{Level, info, warn, error, debug};
 use simple_logger;
 use teloxide::{payloads::SendMessageSetters, requests::Requester, types::{Message, ParseMode}, Bot};
+use lazy_static::lazy_static;
 use crate::gpt::gpt;
 use crate::kv::*;
 
-// 常量定义
-static API_KEY: &str = "";
-static USER_ID: &str = "";
-static PROMPT: &str = "你是一个中文大模型，不管我用什么语言提出问题，你必须使用中文回答！";
-static MODEL: &str = "@cf/qwen/qwen1.5-14b-chat-awq";
-static KV_NAMESPACE_ID: &str = "";
-static TELEGRAM_BOTTOKEN: &str = "";
+lazy_static! {
+    static ref CFG: Config = setup_config();
+}
 
 // 主函数
 #[tokio::main]
@@ -25,7 +24,7 @@ async fn main() {
 
     // 初始化 Bot
     info!("Bot 初始化中");
-    let bot = Bot::new(TELEGRAM_BOTTOKEN);
+    let bot = Bot::new(CFG.telegram_bottoken.clone());
     info!("Bot 初始化完毕");
 
     // 主程序
@@ -96,7 +95,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
     let mut chat: Value;
 
     // 获取储存在 KV 中的对话
-    match get_kv_value(msg.chat.id.to_string().as_str(), USER_ID, API_KEY, KV_NAMESPACE_ID).await {
+    match get_kv_value(msg.chat.id.to_string().as_str(), &CFG.user_id, &CFG.api_key, &CFG.kv_namespace_id).await {
         Ok(value) => {
             chat = serde_json::from_str(&value)
                 .expect("Failed to parse JSON string");
@@ -104,7 +103,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
         Err(_) => { // 没有对话则初始化
             chat = json!({
                 "messages": [
-                    {"role": "system", "content": PROMPT},
+                    {"role": "system", "content": &CFG.prompt},
                 ],
                 "max_tokens": 100000
             });
@@ -118,7 +117,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
     }
 
     // 获取答案
-    let answer = gpt(chat.clone(), USER_ID, API_KEY, MODEL).await.unwrap();
+    let answer = gpt(chat.clone(), &CFG.user_id, &CFG.api_key, &CFG.model).await.unwrap();
 
     // 去除两边 "，将 `\n` 转换为换行，去除 `\`
     let replytext = &answer[1..answer.len()-1].replace("\\n", "\n").replace("\\", "");
@@ -130,7 +129,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
     }
 
     // 将对话储存到 KV
-    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), USER_ID, API_KEY, KV_NAMESPACE_ID).await {
+    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), &CFG.user_id, &CFG.api_key, &CFG.kv_namespace_id).await {
         Ok(msg) => debug!("{}", msg),
         Err(msg) => error!("{}", msg.to_string()),
     }
@@ -164,13 +163,13 @@ async fn reply_clear(msg: Message, bot: Bot) {
     // 将 chat 初始化
     let chat = json!({
             "messages": [
-            {"role": "system", "content": PROMPT},
+            {"role": "system", "content": &CFG.prompt},
             ],
             "max_tokens": 100000
     });
 
     // 保存至 KV
-    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), USER_ID, API_KEY, KV_NAMESPACE_ID).await {
+    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), &CFG.user_id, &CFG.api_key, &CFG.kv_namespace_id).await {
         Ok(msg) => debug!("{}", msg),
         Err(msg) => error!("{}", msg.to_string()),
     }
