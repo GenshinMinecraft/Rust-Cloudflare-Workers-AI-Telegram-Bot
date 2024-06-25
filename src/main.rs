@@ -76,6 +76,32 @@ async fn reply_start(msg: Message, bot: Bot) {
 
 // 处理 ai 回复
 async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
+
+    // 检测是否为可使用的用户
+    if CFG.telegram_id == vec![1145141919810] {
+        // 无白名单直接使用
+    } else {
+        if msg.chat.is_private() { // 私聊
+            let is_user_available: bool = CFG.telegram_id.iter().any(|&x| x == msg.chat.id.to_string().parse().unwrap());
+            if is_user_available {
+                // 在白名单内
+            } else { // 不在白名单内
+                let _ = bot.send_message(msg.chat.id, "❌ 您不在白名单内，请联系管理员授权").await;
+                info!("用户未授权");
+                return;
+            }
+        } else { // 群组
+            let is_group_available: bool = CFG.telegram_id.iter().any(|&x| x == msg.chat.id.to_string().parse().unwrap());
+            if is_group_available {
+                // 在白名单内
+            } else { // 不在白名单内
+                let _ = bot.send_message(msg.chat.id, "❌ 该群组不在白名单内，请联系管理员授权").await;
+                info!("用户未授权");
+                return;
+            }
+        }
+    }
+
     let text: &str;
 
     // 检测是否有参数
@@ -84,7 +110,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
         None => {
             warn!("{}", format!("用户 {:?} 使用方法不正确", get_user_id(msg.clone()).await.unwrap_or("无法获取 ID".to_string())));
             
-            let _ = bot.send_message(msg.chat.id, "使用方法不正确！请使用 /start 来查看使用方法")
+            let _ = bot.send_message(msg.chat.id, "❌ 使用方法不正确！请使用 /start 来查看使用方法")
             .parse_mode(ParseMode::MarkdownV2)
             .await;
             return;
@@ -174,13 +200,14 @@ async fn reply_clear(msg: Message, bot: Bot) {
         Err(msg) => error!("{}", msg.to_string()),
     }
 
-    let _ = bot.send_message(msg.chat.id, "成功清除上下文")
+    let _ = bot.send_message(msg.chat.id, "✔️ 成功清除上下文")
     .parse_mode(ParseMode::MarkdownV2)
     .await;
 }
 
 // 私聊处理
 async fn match_msg_private(msg: Message, bot: Bot) {
+
     let text: &str = msg.text().unwrap();
 
     if text.starts_with('/') { // 是否为 "/" 开头的命令
@@ -204,6 +231,7 @@ async fn match_msg_private(msg: Message, bot: Bot) {
 
 // 非私聊处理
 async fn match_msg_public(msg: Message, bot: Bot) {
+
     let text: &str = msg.text().unwrap();
 
     if text.starts_with('/') { // 是否为 "/" 开头的命令

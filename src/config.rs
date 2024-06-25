@@ -12,6 +12,7 @@ pub struct Config {
     pub model: String,
     pub kv_namespace_id: String,
     pub telegram_bottoken: String,
+    pub telegram_id: Vec<i128>,
 }
 
 pub fn setup_config() -> Config {
@@ -22,6 +23,7 @@ pub fn setup_config() -> Config {
         model: String::new(),
         kv_namespace_id: String::new(),
         telegram_bottoken: String::new(),
+        telegram_id: Vec::new(),
     };
 
     match env::var("API_KEY") {
@@ -89,6 +91,26 @@ pub fn setup_config() -> Config {
             exit(1);
         },
     };
+
+    match env::var("TELEGRAM_ID") {
+        Ok(tmp) => {
+            let array: Vec<i128> = if tmp.contains(',') {
+                // 按逗号分割
+                tmp.split(',')
+                    .map(|s| s.trim().parse().expect("无法解析为数字"))
+                    .collect()
+            } else {
+                // 将整个字符串解析为一个数字
+                vec![tmp.trim().parse().expect("无法解析为数字")]
+            };
+
+            config.telegram_id = array;
+        },
+        Err(_) => {
+            warn!("无法获取 TELEGRAM_ID 的值，将开放给所有用户使用");
+            config.telegram_id = vec![1145141919810]; // 1145141919810 代表所有用户 (不要问为什么这样设置，问就是喜欢)
+        },
+    }
 
     return config;
 }

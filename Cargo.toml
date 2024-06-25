@@ -1,6 +1,6 @@
 [package]
 name = "Rust-Cloudflare-Workers-AI-Telegram-Bot"
-version = "0.0.9"
+version = "0.0.10"
 edition = "2021"
 
 [dependencies]
@@ -16,7 +16,6 @@ lazy_static = "1.4.0"
 [profile.dev]
 # Must always use panic = "abort" to avoid needing to define the unstable eh_personality lang item.
 panic = "abort"
-
 
 [profile.release]
 opt-level = "z"     # Optimize for size.

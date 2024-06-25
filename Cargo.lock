@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "Rust-Cloudflare-Workers-AI-Telegram-Bot"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "lazy_static",
  "log",
