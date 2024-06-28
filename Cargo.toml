@@ -1,6 +1,6 @@
 [package]
 name = "Rust-Cloudflare-Workers-AI-Telegram-Bot"
-version = "0.0.10"
+version = "0.1.0"
 edition = "2021"
 
 [dependencies]
@@ -12,6 +12,8 @@ tokio = { version =  "1.38.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.21"
 simple_logger = "5.0.0"
 lazy_static = "1.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
 
 [profile.dev]
 # Must always use panic = "abort" to avoid needing to define the unstable eh_personality lang item.

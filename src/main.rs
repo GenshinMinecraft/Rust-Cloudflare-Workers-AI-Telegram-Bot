@@ -3,28 +3,28 @@ mod gpt;
 mod kv;
 mod config;
 
-use config::{setup_config, Config};
+use config::*;
 use serde_json::{json, Value};
 use log::{Level, info, warn, error, debug};
 use simple_logger;
 use teloxide::{payloads::SendMessageSetters, requests::Requester, types::{Message, ParseMode}, Bot};
 use lazy_static::lazy_static;
-use crate::gpt::gpt;
+use crate::gpt::*;
 use crate::kv::*;
 
 lazy_static! {
-    static ref CFG: Config = setup_config();
+    static ref CONFIG: Config = setup_config();
 }
 
 // 主函数
 #[tokio::main]
 async fn main() {
     // 日志初始化
-    simple_logger::init_with_level(Level::Debug).unwrap();
+    simple_logger::init_with_level(Level::Info).unwrap();
 
     // 初始化 Bot
     info!("Bot 初始化中");
-    let bot = Bot::new(CFG.telegram_bottoken.clone());
+    let bot = Bot::new(CONFIG.telegram.bot_token.clone());
     info!("Bot 初始化完毕");
 
     // 主程序
@@ -78,11 +78,11 @@ async fn reply_start(msg: Message, bot: Bot) {
 async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
 
     // 检测是否为可使用的用户
-    if CFG.telegram_id == vec![1145141919810] {
+    if CONFIG.telegram.users_id_vec == vec![1145141919810] {
         // 无白名单直接使用
     } else {
         if msg.chat.is_private() { // 私聊
-            let is_user_available: bool = CFG.telegram_id.iter().any(|&x| x == msg.chat.id.to_string().parse().unwrap());
+            let is_user_available: bool = CONFIG.telegram.users_id_vec.iter().any(|&x| x == msg.chat.id.to_string().parse().unwrap());
             if is_user_available {
                 // 在白名单内
             } else { // 不在白名单内
@@ -91,7 +91,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
                 return;
             }
         } else { // 群组
-            let is_group_available: bool = CFG.telegram_id.iter().any(|&x| x == msg.chat.id.to_string().parse().unwrap());
+            let is_group_available: bool = CONFIG.telegram.users_id_vec.iter().any(|&x| x == msg.chat.id.to_string().parse().unwrap());
             if is_group_available {
                 // 在白名单内
             } else { // 不在白名单内
@@ -121,7 +121,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
     let mut chat: Value;
 
     // 获取储存在 KV 中的对话
-    match get_kv_value(msg.chat.id.to_string().as_str(), &CFG.user_id, &CFG.api_key, &CFG.kv_namespace_id).await {
+    match get_kv_value(msg.chat.id.to_string().as_str(), &CONFIG.cloudflare.account_id, &CONFIG.cloudflare.api_token, &CONFIG.cloudflare.kv.namespace_id).await {
         Ok(value) => {
             chat = serde_json::from_str(&value)
                 .expect("Failed to parse JSON string");
@@ -129,7 +129,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
         Err(_) => { // 没有对话则初始化
             chat = json!({
                 "messages": [
-                    {"role": "system", "content": &CFG.prompt},
+                    {"role": "system", "content": &CONFIG.cloudflare.workers_ai.prompt},
                 ],
                 "max_tokens": 100000
             });
@@ -143,7 +143,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
     }
 
     // 获取答案
-    let answer = gpt(chat.clone(), &CFG.user_id, &CFG.api_key, &CFG.model).await.unwrap();
+    let answer = workers_ai_gpt(chat.clone(), &CONFIG.cloudflare.account_id, &CONFIG.cloudflare.api_token, &CONFIG.cloudflare.ai_gateway.name, &CONFIG.cloudflare.workers_ai.model).await.unwrap();
 
     // 去除两边 "，将 `\n` 转换为换行，去除 `\`
     let replytext = &answer[1..answer.len()-1].replace("\\n", "\n").replace("\\", "");
@@ -155,7 +155,7 @@ async fn reply_ai(msg: Message, bot: Bot, optiontext: Option<&str>) {
     }
 
     // 将对话储存到 KV
-    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), &CFG.user_id, &CFG.api_key, &CFG.kv_namespace_id).await {
+    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), &CONFIG.cloudflare.account_id, &CONFIG.cloudflare.api_token, &CONFIG.cloudflare.kv.namespace_id).await {
         Ok(msg) => debug!("{}", msg),
         Err(msg) => error!("{}", msg.to_string()),
     }
@@ -189,13 +189,13 @@ async fn reply_clear(msg: Message, bot: Bot) {
     // 将 chat 初始化
     let chat = json!({
             "messages": [
-            {"role": "system", "content": &CFG.prompt},
+            {"role": "system", "content": &CONFIG.cloudflare.workers_ai.prompt},
             ],
             "max_tokens": 100000
     });
 
     // 保存至 KV
-    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), &CFG.user_id, &CFG.api_key, &CFG.kv_namespace_id).await {
+    match edit_kv_value(msg.chat.id.to_string().as_str(), chat.to_string().as_str(), &CONFIG.cloudflare.account_id, &CONFIG.cloudflare.api_token, &CONFIG.cloudflare.kv.namespace_id).await {
         Ok(msg) => debug!("{}", msg),
         Err(msg) => error!("{}", msg.to_string()),
     }

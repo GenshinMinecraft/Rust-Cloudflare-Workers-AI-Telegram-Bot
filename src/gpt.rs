@@ -4,7 +4,7 @@
 use reqwest::header;
 use serde_json::{from_str, Value};
 
-pub async fn gpt(chat: Value, user_id: &str, api_key: &str, model: &str) -> Result<String, String> {
+pub async fn workers_ai_gpt(chat: Value, user_id: &str, api_key: &str, ai_gateway: &str, model: &str) -> Result<String, String> {
 
     // 初始化 Headers
     let mut headers = header::HeaderMap::new();
@@ -23,8 +23,8 @@ pub async fn gpt(chat: Value, user_id: &str, api_key: &str, model: &str) -> Resu
     // 发送请求
     let api: String = client
         .post(format!(
-            "https://api.cloudflare.com/client/v4/accounts/{}/ai/run/{}",
-            user_id, model
+            "https://gateway.ai.cloudflare.com/v1/{}/{}/workers-ai/{}",
+            user_id, ai_gateway, model
         ))
         .headers(headers)
         .json(&chat)

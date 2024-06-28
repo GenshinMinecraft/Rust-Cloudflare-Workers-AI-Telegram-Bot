@@ -1,0 +1,16 @@
+telegram:
+  bot_token: "" # (必须) Telegram Bot Token
+  admin_id: "215575" # (非必须) Telegram Admin ID，只能填写一个
+  users_id: "215575, -114514, 1919810" # (非必须) Telegram User ID，可以填写多个，使用 "," 分割
+
+cloudflare:
+  account_id: "" # (必须) Cloudflare Account ID
+  api_token: "" # (必须) Cloudflare Account API Token，可以使用 Global API
+  kv:
+    namespace_id: "" # (必须) Cloudflare Workers KV Namespace ID
+  ai_gateway:
+    name: "" # (必须) Cloudflare AI Gateway Name
+  workers_ai:
+    model: "@cf/qwen/qwen1.5-14b-chat-awq" # (非必须) 使用的 AI 大模型
+    prompt: "你是一个 AI 大模型" # (非必须) Prompt 提示词
+

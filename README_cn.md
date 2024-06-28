@@ -20,41 +20,46 @@
 
 ## 运行
 
-在 Release 中下载并配置好可执行权限
+### Telegram 设置
 
-请在环境中使用**变量**填写好信息后 使用
+你需要新建一个 Bot，并获取你的 ID 与使用者或群组的 ID，这一步不再赘述
 
-- `API_KEY` (必须): 
-    在[这里](https://dash.cloudflare.com/profile/api-tokens)获取，至少需要 Workers AI 的读写和 Workers KV 的读写权限
-- `USER_ID` (必须): 
-    Cloudflare 的 Account ID，最简单的获取方式就是打开 Cloudflare Dash，URL 中的那串就是，比如 `41810b51b9f7521da5fea96d12xxxxxx`
-- `PROMPT` (非必须): 
-    AI 提示词
-- `MODEL` (非必须): 
-    对话使用的大模型，默认是阿里云的通义千问，可以在[这里](https://developers.cloudflare.com/workers-ai/models/)查看支持的模型
-- `KV_NAMESPACE_ID` (必须): 
-    Workers KV 的 Namespace ID
-- `TELEGRAM_BOTTOKEN` (必须): 
-    TG BOT TOKEN
-- `TELEGRAM_ID` (非必须):
-    Telegram 白名单 ID，只有白名单内的群组/用户才可使用，多个 ID 使用 `,`(英文逗号) 隔开
-- `http_proxy` 与 `https_proxy` (非必须): 
-    这是 Linux Bash 环境下通用的变量，可以填写 http(s) 或 socks 代理来请求 Telegram 与 Cloudflare API
+### Cloudflare 设置
 
-比如 Linux Bash 环境下:
+你需要获取你的 Account ID 及其对应的 API Token (懒得配可以用 Global API Token)
+
+并新建一个 Workers KV 键值对储存区域，记录其 Namespace ID
+
+还需要建立一个 AI Gateway 并记录其名字
+
+### 编辑配置文件
+
+首先下载配置文件模板:
 
 ```bash
-API_KEY="SECRET" \
-USER_ID="SECRET" \
-PROMPT="You Are A Pig" \
-MODEL="@cf/qwen/qwen1.5-14b-chat-awq" \
-KV_NAMESPACE_ID="SECRET" \
-TELEGRAM_BOTTOKEN="SECRET" \
-TELEGRAM_ID="123,-10086,114514" \
-./amd64-linux
+wget https://raw.githubusercontent.com/GenshinMinecraft/Rust-Cloudflare-Workers-AI-Telegram-Bot/main/config.yaml.exp -O config.yaml
 ```
 
-运行即可，Bot 信息请看 Log 输出
+随后用你喜欢的编辑器打开它并编辑，下面是各个项目的解释说明:
+
+- `telegram`: 有关 Telegram 的配置
+    - `bot_token`: **(必须)** Telegram Bot Token
+    - `admin_id`: (非必须) 本 Bot 在 Telegram 的管理员
+    - `users_id`: (非必须) 可以使用的用户列表，如果填写则只有列表内的用户或群组有权限使用，不填写则为开放使用
+
+- `cloudflare`: 有关 Cloudflare 的配置
+    - `account_id`: **(必须)** Cloudflare Account ID，可以从 Dashboard 的 URL 中找到
+    - `api_token`: **(必须)** Cloudflare Account API Token，如果觉得配置权限麻烦可以使用 Global API Token
+
+    - `kv`: 有关 Cloudflare Workers KV 的配置
+        - `namespace_id`: **(必须)** Workers KV 的 Namespace ID，可以在其详情界面找到
+
+    - `ai_gateway`: 有关 Cloudflare AI Gateway 的配置
+        - `name`: **(必须)** Cloudflare AI Gateway 的名字，建立时设置
+
+    - `workers_ai`: 有关 Workers AI 的配置
+        - `model`: (非必须) 模型配置，可以在 Cloudflare Doc 查看所有模型
+        - `prompt`: (非必须) 所有用户的初始化 Prompt 提示词
 
 ## 鸣谢
 
