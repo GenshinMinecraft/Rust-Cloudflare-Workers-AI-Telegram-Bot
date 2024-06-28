@@ -1,5 +1,7 @@
 # Rust-Cloudflare-Workers-AI-Telegram-Bot
 
+[简体中文](https://github.com/GenshinMinecraft/Rust-Cloudflare-Workers-AI-Telegram-Bot/blob/main/README_cn.md) [English](https://github.com/GenshinMinecraft/Rust-Cloudflare-Workers-AI-Telegram-Bot/blob/main/README.md)
+
 For the Python implementation, please refer to [Cloudflare-Workers-Ai-Telegram-Bot](https://github.com/GenshinMinecraft/Cloudflare-Workers-Ai-Telegram-Bot).
 
 ## Introduction
